@@ -4,24 +4,37 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Category</title>
-    <!-- Bootstrap CSS -->
+    <title>Create Book</title>
     <!-- CSS only -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
     <div class="container">
-        <form action="/category/store" method="post">
-            <h3 align="center">Category Form</h3>
+        <form action="/book/store" method="post">
+            <h3 align="center">Book Form</h3>
             <hr>
             <div class="row">
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label for="name">Category Name</label>
-                        <input type="text" class="form-control" name="name" id="name">
+                        <label for="category_id">Categories</label>
+                        <select class="form-control" name="category_id" id="category_id">
+                            {{range .Category}}
+                                <option value="{{.ID}}">{{.Name}}</option>
+                            {{end}}
+                        </select>
                     </div>
                 </div>
             </div>
+            <p class="text-danger">{{.Errors.Category_id}}</p>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="book_name">Book Name</label>
+                        <input class="form-control" type="text" name="book_name">
+                    </div>
+                </div>
+            </div>
+            <p class="text-danger">{{.Errors.book_name}}</p>
             <div class="row">
                 <div class="col-md-6">
                     <div class="form-group">

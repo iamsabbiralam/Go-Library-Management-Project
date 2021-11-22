@@ -16,12 +16,21 @@ import (
 func main() {
 
 	var createTable = `
-	CREATE TABLE IF NOT EXISTS category (
+	CREATE TABLE IF NOT EXISTS categories (
 		id	serial,
 		name text,
 		status boolean,
 
 		primary key (id)
+	);
+	
+	CREATE TABLE IF NOT EXISTS books (
+		id	serial,
+		category_id integer,
+		book_name text,
+		status boolean,
+
+		primary Key (id)
 	);`
 
 	db, err := sqlx.Connect("postgres", "user=postgres password=password dbname=library sslmode=disable")

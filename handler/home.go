@@ -1,11 +1,12 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 )
 
 func (h *Handler) home(rw http.ResponseWriter, r *http.Request) {
-		rw.Header().Add("Content-Type", "text/html")
-		fmt.Fprintf(rw, "<h1>Hello!</h1>")
+		if err:= h.templates.ExecuteTemplate(rw, "home.html", nil); err != nil {
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
