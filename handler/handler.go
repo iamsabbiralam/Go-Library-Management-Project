@@ -38,6 +38,9 @@ func New(db *sqlx.DB, decoder *schema.Decoder) *mux.Router {
 	r.HandleFunc("/book/{id:[0-9]+}/update", h.updateBook)
 	r.HandleFunc("/book/{id:[0-9]+}/delete", h.deleteBook)
 	r.HandleFunc("/book/search", h.searchBook)
+	r.HandleFunc("/bookings/{id:[0-9]+}/create", h.createBookings)
+	r.HandleFunc("/bookings/store", h.storeBookings)
+	r.HandleFunc("/mybookings", h.myBookings)
 
 	r.NotFoundHandler = http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		if err := h.templates.ExecuteTemplate(rw, "404.html", nil); err != nil {
@@ -59,5 +62,7 @@ func (h *Handler) parseTemplate() {
 		"templates/book/list-book.html",
 		"templates/book/edit-book.html",
 		"templates/home.html",
+		"templates/bookings/create-bookings.html",
+		"templates/bookings/my-bookings.html",
 		))
 }

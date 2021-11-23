@@ -31,6 +31,16 @@ func main() {
 		status boolean,
 
 		primary Key (id)
+	);
+	
+	CREATE TABLE IF NOT EXISTS bookings (
+		id	serial,
+		user_id integer,
+		book_id integer,
+		start_time timestamp,
+		end_time timestamp,
+
+		primary Key (id)
 	);`
 
 	db, err := sqlx.Connect("postgres", "user=postgres password=password dbname=library sslmode=disable")

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"time"
 
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/gorilla/mux"
@@ -23,6 +24,7 @@ type FormBooks struct {
 
 type showBooks struct {
 	Book []Book
+	Booking []Bookings
 }
 
 func (b *Book) Validate() error {
@@ -66,7 +68,7 @@ func (h *Handler) storeBooks(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	const insertBook = `INSERT INTO books(category_id,book_name,status) VALUES($1,$2,$3)`
-	res:= h.db.MustExec(insertBook, book.Category_id, book.Book_name,book.Status)
+	res:= h.db.MustExec(insertBook, book.Category_id, book.Book_name, book.Status)
 	if ok, err:= res.RowsAffected(); err != nil || ok == 0 {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
@@ -75,6 +77,15 @@ func (h *Handler) storeBooks(rw http.ResponseWriter, r *http.Request) {
 }
 
 func(h *Handler) listBooks(rw http.ResponseWriter, r *http.Request) {
+	currentTime := time.Now()
+	booking := []Bookings{}
+	const getBooking = "SELECT * FROM bookings WHERE end_time < $1"
+	h.db.Select(&booking, getBooking, currentTime)
+	for _, value := range booking {
+		const updateBook = "UPDATE books SET status = true WHERE id = $1"
+		h.db.MustExec(updateBook, value.BookID)
+	}
+
 	book := []Book{}
 	h.db.Select(&book, "SELECT * FROM books")
 	for key, value := range book {
