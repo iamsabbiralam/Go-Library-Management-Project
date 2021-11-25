@@ -2,7 +2,6 @@ package handler
 
 import (
 	"net/http"
-	"time"
 
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/gorilla/mux"
@@ -12,6 +11,8 @@ type Book struct {
 	ID int `db:"id"`
 	Category_id int `db:"category_id"`
 	Book_name string `db:"book_name"`
+	AuthorName string `db:"author_name"`
+	Details string `db:"details"`
 	Status bool `db:"status"`
 	Cat_name string
 }
@@ -25,6 +26,7 @@ type FormBooks struct {
 type showBooks struct {
 	Book []Book
 	Booking []Bookings
+	Category []Category
 }
 
 func (b *Book) Validate() error {
@@ -67,8 +69,8 @@ func (h *Handler) storeBooks(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	const insertBook = `INSERT INTO books(category_id,book_name,status) VALUES($1,$2,$3)`
-	res:= h.db.MustExec(insertBook, book.Category_id, book.Book_name, book.Status)
+	const insertBook = `INSERT INTO books(category_id,book_name,author_name,details,status) VALUES($1,$2,$3,$4,$5)`
+	res:= h.db.MustExec(insertBook, book.Category_id, book.Book_name, book.AuthorName, book.Details, book.Status)
 	if ok, err:= res.RowsAffected(); err != nil || ok == 0 {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
@@ -77,14 +79,14 @@ func (h *Handler) storeBooks(rw http.ResponseWriter, r *http.Request) {
 }
 
 func(h *Handler) listBooks(rw http.ResponseWriter, r *http.Request) {
-	currentTime := time.Now()
-	booking := []Bookings{}
-	const getBooking = "SELECT * FROM bookings WHERE end_time < $1"
-	h.db.Select(&booking, getBooking, currentTime)
-	for _, value := range booking {
-		const updateBook = "UPDATE books SET status = true WHERE id = $1"
-		h.db.MustExec(updateBook, value.BookID)
-	}
+	// currentTime := time.Now()
+	// booking := []Bookings{}
+	// const getBooking = "SELECT * FROM bookings WHERE end_time < $1"
+	// h.db.Select(&booking, getBooking, currentTime)
+	// for _, value := range booking {
+	// 	const updateBook = "UPDATE books SET status = true WHERE id = $1"
+	// 	h.db.MustExec(updateBook, value.BookID)
+	// }
 
 	book := []Book{}
 	h.db.Select(&book, "SELECT * FROM books")
@@ -94,8 +96,11 @@ func(h *Handler) listBooks(rw http.ResponseWriter, r *http.Request) {
 		h.db.Get(&category, getTodo, value.Category_id)
 		book[key].Cat_name = category.Name
 	}
+	category := []Category{}
+	h.db.Select(&category, "SELECT * FROM categories")
 	list := showBooks{
 		Book : book,
+		Category: category,
 	}
 	if err:= h.templates.ExecuteTemplate(rw, "list-book.html", list); err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
@@ -164,8 +169,8 @@ func (h *Handler) updateBook(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	const updateBook = `UPDATE books SET category_id = $2, book_name = $3, status = $4 WHERE id = $1`
-	res:= h.db.MustExec(updateBook, id, book.Category_id, book.Book_name, book.Status)
+	const updateBook = `UPDATE books SET category_id = $2, book_name = $3, author_name = $4, details = $5, status = $6 WHERE id = $1`
+	res:= h.db.MustExec(updateBook, id, book.Category_id, book.Book_name, book.AuthorName, book.Details, book.Status)
 	if ok, err:= res.RowsAffected(); err != nil || ok == 0 {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
@@ -243,6 +248,27 @@ func (h *Handler) searchBook(rw http.ResponseWriter, r *http.Request) {
 		Book : book,
 	}
 	if err:= h.templates.ExecuteTemplate(rw, "list-book.html", list); err != nil {
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h *Handler) bookDetails(rw http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+	if id == "" {
+		http.Error(rw, "invalid URL", http.StatusInternalServerError)
+		return
+	}
+	const getBook = `SELECT * FROM books WHERE id=$1`
+	var book Book
+	h.db.Get(&book, getBook, id)
+	const getTodo = `SELECT name FROM categories WHERE id=$1`
+	var category Category
+	h.db.Get(&category, getTodo, book.Category_id)
+	book.Cat_name = category.Name
+
+	if err:= h.templates.ExecuteTemplate(rw, "single-details.html", book); err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}

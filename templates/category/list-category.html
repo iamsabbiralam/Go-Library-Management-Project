@@ -55,9 +55,9 @@
                         <td>{{.ID}}</td>
                         <td>{{.Name}}</td>
                         <td>{{if eq .Status true}}
-                                Active
+                                <div style="color: green;">Active</div>
                             {{else}}
-                                Inactive
+                                <div style="color: red;">Inactive</div>
                             {{end}}
                         </td>
                         <td>

@@ -4,57 +4,80 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Category List</title>
+    <title>Book List</title>
     <!-- Bootstrap CSS -->
     <!-- CSS only -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
 </head>
-<body onload = "JavaScript:AutoRefresh(5000);">
+<body>
+    <h3 align="center">Books Lists</h3>
     <div class="container">
-        <table id="example" class="table table-striped" style="width:100%">
-            <h3 align="center">Books Lists</h3>
-            <a href="/book/create" class="btn btn-primary">Create Book</a>&nbsp;
-            <a href="/category/list" class="btn btn-primary">Category List</a>&nbsp;
-            <a href="/" class="btn btn-secondary">Home</a>&nbsp;
-            <a href="/mybookings" class="btn btn-info">My Bookings</a>
-            <div class="container">
-            <br/>
-            <div class="row justify-content-center">
-                <div class="col-12 col-md-10 col-lg-8">
-                    <form class="card card-sm" action="/book/search" method="post">
-                        <div class="card-body row no-gutters align-items-center">
-                            <div class="col-auto">
-                                <i class="fas fa-search h4 text-body"></i>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col"><a href="/" class="btn btn-secondary">Home</a></th>
+                    <th scope="col"><a href="/book/create" class="btn btn-primary">Create Book</a></th>
+                    <th scope="col"><a href="/category/list" class="btn btn-primary">Category List</a></th>
+                    <th scope="col"><a href="/mybookings" class="btn btn-info">My Bookings</a></th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-10 col-lg-4">
+                <div>
+                    <select class="form-control form-select-sm" id="catid" aria-label="Default select example">
+                        <option value="" selected>All Categories</option>
+                        {{ range $value := .Category}}
+                        <option value="{{$value.Name}}" >{{$value.Name}}</option>
+                        {{end}}
+                    </select>
+                </div>
+            </div>
+            <div class="col-12 col-md-10 col-lg-8">
+                <form action="/book/search" method="post">
+                    <div class="align-items-center">
+                        <div class="col-auto">
+                            <i class="fas fa-search h4 text-body"></i>
+                        </div>
+                        <!--end of col-->
+                        <div class="row">
+                            <div class="col-8">
+                                <input class="form-control form-control-borderless" type="search" placeholder="Search Books" name="search">
                             </div>
                             <!--end of col-->
-                            <div class="col">
-                                <input class="form-control form-control-lg form-control-borderless" type="search" placeholder="Search topics or keywords" name="search">
-                            </div>
-                            <!--end of col-->
                             <div class="col-auto">
-                                <button class="btn btn-lg btn-success" type="submit">Search</button>
+                                <button class="btn btn-success" type="submit">Search</button>
                             </div>
                             <!--end of col-->
                         </div>
-                    </form>
-                </div>
-                <!--end of col-->
+                    </div>
+                </form>
             </div>
+            <!--end of col-->
+        </div>
+    </div>
+    <br>
+    <div class="container">
+        <table id="myTable" class="table table-striped" style="width:100%">
             <thead>
                 <tr>
                     <th>ID</th>
                     <th>Category Name</th>
                     <th>Book Name</th>
+                    <th>Author Name</th>
                     <th>Status</th>
                     <th>Action</th>
                 </tr>
             </thead>
             <tbody>
                 {{ range .Book}}
-                    <tr>
+                    <tr id="myTR">
                         <td>{{.ID}}</td>
                         <td>{{.Cat_name}}</td>
                         <td>{{.Book_name}}</td>
+                        <td>{{.AuthorName}}</td>
                         <td>{{if eq .Status true}}
                                 <div style="color: green;">Active</div>
                             {{else}}
@@ -67,8 +90,9 @@
                             {{if .Status}}
                                 <a href="/bookings/{{.ID}}/create" class="btn btn-dark">Book</a>
                             {{else}}
-                                <a class="btn btn-success">Booked</a>
+                                <a class="btn btn-warning">Booked</a>
                             {{end}}
+                            <a href="/book/{{.ID}}/bookdetails" class="btn btn-success">Book Details</a>
                         </td>
                     </tr>
                 {{end}}
@@ -76,11 +100,17 @@
         </table>
     </div>
 </body>
-<script type = "text/JavaScript">
-    <!--
-    function AutoRefresh( t ) {
-        setTimeout("location.reload(true);", t);
-    }
-    //-->
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+<script>
+    $(document).ready(function(){
+        $("#catid").on("change", function() {
+        var value = $(this).val().toLowerCase();
+        $("#myTable #myTR").filter(function() {
+            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+        });
+        });
+    });
 </script>
 </html>

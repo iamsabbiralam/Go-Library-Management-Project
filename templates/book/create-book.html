@@ -30,11 +30,29 @@
                 <div class="col-md-6">
                     <div class="form-group">
                         <label for="book_name">Book Name</label>
-                        <input class="form-control" type="text" name="book_name">
+                        <input class="form-control" type="text" name="Book_name">
                     </div>
                 </div>
             </div>
-            <p class="text-danger">{{.Errors.book_name}}</p>
+            <p class="text-danger">{{.Errors.Book_name}}</p>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="book_name">Author Name</label>
+                        <input class="form-control" type="text" name="AuthorName">
+                    </div>
+                </div>
+            </div>
+            <p class="text-danger">{{.Errors.AuthorName}}</p>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="book_name">Details</label>
+                        <input class="form-control" type="text" name="Details">
+                    </div>
+                </div>
+            </div>
+            <p class="text-danger">{{.Errors.Details}}</p>
             <div class="row">
                 <div class="col-md-6">
                     <div class="form-group">

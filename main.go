@@ -28,6 +28,8 @@ func main() {
 		id	serial,
 		category_id integer,
 		book_name text,
+		author_name text,
+		details text,
 		status boolean,
 
 		primary Key (id)

@@ -115,7 +115,7 @@ func(h *Handler) myBookings(rw http.ResponseWriter, r *http.Request) {
 	for key, value := range booking {
 		const getBook = `SELECT book_name FROM books WHERE id=$1`
 		var book Book
-		h.db.Get(&book, getBook, value.ID)
+		h.db.Get(&book, getBook, value.BookID)
 		start_time:= value.StartTime.Format("Mon Jan _2 2006 15:04 AM")
 		end_time:= value.EndTime.Format("Mon Jan _2 2006 15:04 AM")
 		booking[key].BookName = book.Book_name
