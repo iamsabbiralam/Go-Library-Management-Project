@@ -30,6 +30,7 @@ func main() {
 		book_name text,
 		author_name text,
 		details text,
+		image text,
 		status boolean,
 
 		primary Key (id)
@@ -41,6 +42,17 @@ func main() {
 		book_id integer,
 		start_time timestamp,
 		end_time timestamp,
+
+		primary Key (id)
+	);
+	
+	CREATE TABLE IF NOT EXISTS users (
+		id	serial,
+		first_name text,
+		last_name text,
+		email text,
+		password text,
+		is_verified boolean,
 
 		primary Key (id)
 	);`

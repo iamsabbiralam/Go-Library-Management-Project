@@ -121,27 +121,27 @@ func (h *Handler) updateCategories(rw http.ResponseWriter, r *http.Request) {
 		http.Error(rw, "invalid URL", http.StatusInternalServerError)
 		return
 	}
-
+	var cat Category
 	if err := h.decoder.Decode(&category, r.PostForm); err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	if err := category.Validate(); err != nil {
+	if err := cat.Validate(); err != nil {
 		vErrors, ok := err.(validation.Errors)
 		if ok {
 			vErrs := make(map[string]string)
 			for key, value := range vErrors {
 				vErrs[key] = value.Error()
 			}
-			h.loadEditCategoryForm(rw, category, vErrs)
+			h.loadEditCategoryForm(rw, cat, vErrs)
 			return
 		}
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	const updateCategories = `UPDATE categories SET name = $2, status = $3 WHERE id = $1`
-	res:= h.db.MustExec(updateCategories, id, category.Name, category.Status )
+	res:= h.db.MustExec(updateCategories, id, cat.Name, cat.Status )
 	if ok, err := res.RowsAffected(); err != nil || ok == 0 {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
@@ -173,7 +173,7 @@ func (h *Handler) deleteCategories(rw http.ResponseWriter, r *http.Request) {
 		http.Error(rw, "invalid URL", http.StatusInternalServerError)
 		return
 	}
-	http.Redirect(rw, r, "/", http.StatusTemporaryRedirect)
+	http.Redirect(rw, r, "/category/list", http.StatusTemporaryRedirect)
 }
 
 func (h *Handler) loadCreateCategoryForm(rw http.ResponseWriter, cat Category, errs map[string]string) {

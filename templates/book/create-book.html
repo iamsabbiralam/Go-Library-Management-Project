@@ -10,7 +10,7 @@
 </head>
 <body>
     <div class="container">
-        <form action="/book/store" method="post">
+        <form action="/book/store" method="post" enctype="multipart/form-data">
             <h3 align="center">Book Form</h3>
             <hr>
             <div class="row">
@@ -53,6 +53,15 @@
                 </div>
             </div>
             <p class="text-danger">{{.Errors.Details}}</p>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="Image" class="form-label">Upload Image</label>
+                        <input class="form-control" type="file" id="Image" name="Image" value="">
+                    </div>
+                </div>
+            </div>
+            <p class="text-danger">{{.Errors.Image}}</p>
             <div class="row">
                 <div class="col-md-6">
                     <div class="form-group">

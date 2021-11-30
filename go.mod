@@ -7,9 +7,14 @@ require (
 	github.com/lib/pq v1.2.0
 )
 
-require github.com/gorilla/mux v1.8.0
+require (
+	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible
+	github.com/gorilla/mux v1.8.0
+	github.com/gorilla/schema v1.2.0
+	golang.org/x/crypto v0.0.0-20211117183948-ae814b36b871
+)
 
 require (
-	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible // indirect
-	github.com/gorilla/schema v1.2.0 // indirect
+	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
+	github.com/stretchr/testify v1.7.0 // indirect
 )

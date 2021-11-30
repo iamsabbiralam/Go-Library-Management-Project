@@ -36,7 +36,7 @@
                 </div>
             </div>
             <div class="col-12 col-md-10 col-lg-8">
-                <form action="/book/search" method="post">
+                <form action="/book/search">
                     <div class="align-items-center">
                         <div class="col-auto">
                             <i class="fas fa-search h4 text-body"></i>
@@ -64,6 +64,7 @@
             <thead>
                 <tr>
                     <th>ID</th>
+                    <th>Image</th>
                     <th>Category Name</th>
                     <th>Book Name</th>
                     <th>Author Name</th>
@@ -75,6 +76,13 @@
                 {{ range .Book}}
                     <tr id="myTR">
                         <td>{{.ID}}</td>
+                        <td>
+                            {{if .Image}}
+                                <img src="/asset/{{.Image}}" alt="Image" width="100px">
+                            {{else}}
+                                <img src="https://image.freepik.com/free-vector/blank-book-cover-template-with-pages-front-side-standing_47649-397.jpg" alt="Image" width="100px">
+                            {{end}}
+                        </td>
                         <td>{{.Cat_name}}</td>
                         <td>{{.Book_name}}</td>
                         <td>{{.AuthorName}}</td>

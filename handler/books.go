@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"io/ioutil"
 	"net/http"
+	"path/filepath"
 
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/gorilla/mux"
@@ -13,6 +15,7 @@ type Book struct {
 	Book_name string `db:"book_name"`
 	AuthorName string `db:"author_name"`
 	Details string `db:"details"`
+	Image string `db:"image"`
 	Status bool `db:"status"`
 	Cat_name string
 }
@@ -30,9 +33,17 @@ type showBooks struct {
 }
 
 func (b *Book) Validate() error {
-	return validation.ValidateStruct(b, validation.Field(
-		&b.Book_name, validation.Required.Error("This field is must be required"),
-		validation.Length(3,0).Error("This field is must be grater than 3")))
+	return validation.ValidateStruct(b, 
+		validation.Field(&b.Book_name, 
+			validation.Required.Error("This field is must be required"),
+			validation.Length(3,0).Error("This field is must be grater than 3"),
+		),
+		validation.Field(&b.AuthorName,
+			validation.Required.Error("The Author Name Field is Required"),
+		),
+		validation.Field(&b.Details,
+			validation.Required.Error("The Book Field is Required"),
+		))
 }
 
 func (h *Handler) createBooks(rw http.ResponseWriter, r *http.Request) {
@@ -46,15 +57,40 @@ func (h *Handler) createBooks(rw http.ResponseWriter, r *http.Request) {
 func (h *Handler) storeBooks(rw http.ResponseWriter, r *http.Request) {
 	category := []Category{}
 	h.db.Select(&category, "SELECT * FROM categories")
-	if err := r.ParseForm(); err != nil {
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 	var book Book
 	if err:= h.decoder.Decode(&book, r.PostForm); err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	file, handler, err := r.FormFile("Image")
+    if err != nil {
+        http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
+    }
+    defer file.Close()
+
+    tempFile, err := ioutil.TempFile("assets/image", "upload-"+filepath.Ext(handler.Filename))
+    if err != nil {
+        http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
+    }
+    defer tempFile.Close()
+
+	fileBytes, err := ioutil.ReadAll(file)
+    if err != nil {
+        http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
+    }
+	tempFile.Write(fileBytes)
+	
+	imageName := tempFile.Name()
+
 	if err := book.Validate(); err != nil {
 		vErrors, ok := err.(validation.Errors)
 		if ok {
@@ -69,8 +105,8 @@ func (h *Handler) storeBooks(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	const insertBook = `INSERT INTO books(category_id,book_name,author_name,details,status) VALUES($1,$2,$3,$4,$5)`
-	res:= h.db.MustExec(insertBook, book.Category_id, book.Book_name, book.AuthorName, book.Details, book.Status)
+	const insertBook = `INSERT INTO books(category_id,book_name, author_name, details, image, status) VALUES($1, $2, $3, $4, $5, $6)`
+	res:= h.db.MustExec(insertBook, book.Category_id, book.Book_name, book.AuthorName, book.Details, imageName, book.Status)
 	if ok, err:= res.RowsAffected(); err != nil || ok == 0 {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
