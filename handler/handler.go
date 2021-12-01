@@ -53,6 +53,7 @@ func New(db *sqlx.DB, decoder *schema.Decoder, sess *sessions.CookieStore) *mux.
 	r.HandleFunc("/registration", h.signUpCheck).Methods("POST")
 	r.HandleFunc("/login", h.login).Methods("GET")
 	r.HandleFunc("/login", h.loginCheck).Methods("POST")
+	r.HandleFunc("/logout", h.logout)
 
 	r.NotFoundHandler = http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		if err := h.templates.ExecuteTemplate(rw, "404.html", nil); err != nil {

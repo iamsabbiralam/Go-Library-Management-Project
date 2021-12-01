@@ -16,10 +16,12 @@
                     <span class="input-group-text">Email</span>
                     <input class="form-control" type="email" placeholder="your@email.com" name="Email" value="{{.Email}}">
                 </div>
+                <p class="text-danger">{{.Errors.Email}}</p>
                 <div class="input-group mb-3">
                     <span class="input-group-text">Password</span>
                     <input class="form-control" type="password" name="Password" value="">
                 </div>
+                <p class="text-danger">{{.Errors.Password}}</p>
                 <button type="submit" class="btn bg-success rounded border text-white mt-3">Log in</button>
             </div>
         </div>

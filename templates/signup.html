@@ -25,22 +25,27 @@
                 <label for="FirstName">First Name</label>
                 <input type="text" class="form-control" id="FirstName" name="FirstName">
             </div>
+            <p class="text-danger">{{.Errors.FirstName}}</p>
             <div class="form-group">
                 <label for="LastName">Last Name</label>
                 <input type="text" class="form-control" id="LastName" name="LastName">
             </div>
+            <p class="text-danger">{{.Errors.LastName}}</p>
             <div class="form-group">
                 <label for="Email">Email address</label>
                 <input type="email" class="form-control" id="Email" aria-describedby="emailHelp" name="Email">
             </div>
+            <p class="text-danger">{{.Errors.Email}}</p>
             <div class="form-group">
                 <label for="Password">Password</label>
                 <input type="password" class="form-control" id="Password" name="Password">
             </div>
+            <p class="text-danger">{{.Errors.Password}}</p>
             <div class="form-group">
                 <label for="ConfirmPassword">Confirm Password</label>
                 <input type="password" class="form-control" id="ConfirmPassword" name="ConfirmPassword">
             </div>
+            <p class="text-danger">{{.Errors.ConfirmPassword}}</p>
             <button type="submit" class="btn btn-primary" name="create">Sign up</button>
         </form>
     </div>

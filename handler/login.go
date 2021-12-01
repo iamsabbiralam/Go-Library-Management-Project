@@ -10,8 +10,8 @@ import (
 )
 
 type LoginForm struct {
-	Email	string `db:"email"`
-	Password	string `db:"password"`
+	Email	string
+	Password	string
 	Errors	map[string]string
 }
 
@@ -79,7 +79,7 @@ func (h *Handler) loginCheck(rw http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	session.Values["authUserEmail"] = user.Email
+	session.Values["authUserID"] = user.ID
 	if err := session.Save(r, rw); err != nil {
 		log.Fatal(err)
 	}

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -72,6 +73,7 @@ func (h *Handler) signUpCheck(rw http.ResponseWriter, r *http.Request) {
 			vErrs := make(map[string]string)
 			for key, value := range vErrors {
 				vErrs[key] = value.Error()
+				fmt.Println(key)
 			}
 			h.loadSignUpForm(rw, signup, vErrs)
 			return
@@ -94,6 +96,7 @@ func (h *Handler) signUpCheck(rw http.ResponseWriter, r *http.Request) {
 func (h *Handler) loadSignUpForm(rw http.ResponseWriter, singup SignUp, errs map[string]string) {
 	data := SignUpForm{
 		SingUp: singup,
+		Errors: errs,
 	}
 	if err:= h.templates.ExecuteTemplate(rw, "signup.html", data); err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
