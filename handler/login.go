@@ -79,12 +79,14 @@ func (h *Handler) loginCheck(rw http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
+	session.Options.HttpOnly = true
 	session.Values["authUserID"] = user.ID
 	if err := session.Save(r, rw); err != nil {
 		log.Fatal(err)
 	}
+	session.Save(r, rw);
 
-	http.Redirect(rw, r, "/", http.StatusTemporaryRedirect)
+	http.Redirect(rw, r, "/book/list", http.StatusTemporaryRedirect)
 }
 
 func (h *Handler) loadLoginForm(rw http.ResponseWriter, login LoginForm) {

@@ -1,6 +1,8 @@
 package handler
 
 import (
+	
+	"log"
 	"net/http"
 	"text/template"
 
@@ -30,30 +32,37 @@ func New(db *sqlx.DB, decoder *schema.Decoder, sess *sessions.CookieStore) *mux.
 
 	r:= mux.NewRouter()
 	r.HandleFunc("/", h.home)
-	r.HandleFunc("/category/create", h.createCategories)
-	r.HandleFunc("/category/store", h.storeCategories)
-	r.HandleFunc("/category/list", h.listCategories)
-	r.HandleFunc("/category/{id:[0-9]+}/edit", h.editCategories)
-	r.HandleFunc("/category/{id:[0-9]+}/update", h.updateCategories)
-	r.HandleFunc("/category/{id:[0-9]+}/delete", h.deleteCategories)
-	r.HandleFunc("/category/search", h.searchCategory)
-	r.HandleFunc("/book/create", h.createBooks)
-	r.HandleFunc("/book/store", h.storeBooks)
-	r.HandleFunc("/book/list", h.listBooks)
-	r.HandleFunc("/book/{id:[0-9]+}/edit", h.editBook)
-	r.HandleFunc("/book/{id:[0-9]+}/update", h.updateBook)
-	r.HandleFunc("/book/{id:[0-9]+}/delete", h.deleteBook)
-	r.HandleFunc("/book/search", h.searchBook)
-	r.HandleFunc("/bookings/{id:[0-9]+}/create", h.createBookings)
-	r.HandleFunc("/bookings/store", h.storeBookings)
-	r.HandleFunc("/mybookings", h.myBookings)
-	r.HandleFunc("/book/{id:[0-9]+}/bookdetails", h.bookDetails)
-	r.PathPrefix("/asset/").Handler(http.StripPrefix("/asset/", http.FileServer(http.Dir("./"))))
-	r.HandleFunc("/registration", h.signUp).Methods("GET")
-	r.HandleFunc("/registration", h.signUpCheck).Methods("POST")
-	r.HandleFunc("/login", h.login).Methods("GET")
-	r.HandleFunc("/login", h.loginCheck).Methods("POST")
 	r.HandleFunc("/logout", h.logout)
+
+	l := r.NewRoute().Subrouter()
+	l.HandleFunc("/registration", h.signUp).Methods("GET")
+	l.HandleFunc("/registration", h.signUpCheck).Methods("POST")
+	l.HandleFunc("/login", h.login)
+	l.HandleFunc("/login/aaa", h.loginCheck)
+	l.Use(h.loginMiddleware)
+
+	s := r.NewRoute().Subrouter()
+	s.Use(h.authMiddleware)
+	s.HandleFunc("/category/create", h.createCategories)
+	s.HandleFunc("/category/store", h.storeCategories)
+	s.HandleFunc("/category/list", h.listCategories)
+	s.HandleFunc("/category/{id:[0-9]+}/edit", h.editCategories)
+	s.HandleFunc("/category/{id:[0-9]+}/update", h.updateCategories)
+	s.HandleFunc("/category/{id:[0-9]+}/delete", h.deleteCategories)
+	s.HandleFunc("/category/search", h.searchCategory)
+	s.HandleFunc("/book/create", h.createBooks)
+	s.HandleFunc("/book/store", h.storeBooks)
+	s.HandleFunc("/book/list", h.listBooks)
+	s.HandleFunc("/book/{id:[0-9]+}/edit", h.editBook)
+	s.HandleFunc("/book/{id:[0-9]+}/update", h.updateBook)
+	s.HandleFunc("/book/{id:[0-9]+}/delete", h.deleteBook)
+	s.HandleFunc("/book/search", h.searchBook)
+	s.HandleFunc("/bookings/{id:[0-9]+}/create", h.createBookings)
+	s.HandleFunc("/bookings/store", h.storeBookings)
+	s.HandleFunc("/mybookings", h.myBookings)
+	s.HandleFunc("/book/{id:[0-9]+}/bookdetails", h.bookDetails)
+	s.PathPrefix("/asset/").Handler(http.StripPrefix("/asset/", http.FileServer(http.Dir("./"))))
+	
 
 	r.NotFoundHandler = http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		if err := h.templates.ExecuteTemplate(rw, "404.html", nil); err != nil {
@@ -81,4 +90,36 @@ func (h *Handler) parseTemplate() {
 		"templates/signup.html",
 		"templates/login.html",
 		))
+}
+
+func (h *Handler) authMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		session, err := h.sess.Get(r, sessionName)
+		if err != nil {
+			log.Fatal(err)
+		}
+		authUserID := session.Values["authUserID"]
+		if authUserID != nil {
+			next.ServeHTTP(rw, r)
+		} else {
+			http.Redirect(rw, r, "/login", http.StatusTemporaryRedirect)
+		}
+		
+	})
+}
+
+func (h *Handler) loginMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		session, err := h.sess.Get(r, sessionName)
+		if err != nil {
+			log.Fatal(err)
+		}
+		authUserID := session.Values["authUserID"]
+		if authUserID != nil {
+			http.Redirect(rw, r, "/", http.StatusTemporaryRedirect)
+			return
+		} 
+			next.ServeHTTP(rw, r)
+		
+	})
 }

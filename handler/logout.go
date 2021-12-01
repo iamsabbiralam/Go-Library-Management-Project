@@ -1,3 +1,5 @@
+
+  
 package handler
 
 import (
@@ -10,8 +12,7 @@ func (h *Handler) logout(rw http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	session.Values["authUserID"] = 0
+	session.Values["authUserID"] = nil
 	if err := session.Save(r, rw); err != nil {
 		log.Fatal(err)
 	}
