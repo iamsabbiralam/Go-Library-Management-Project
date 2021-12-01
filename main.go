@@ -9,6 +9,8 @@ import (
 	"library/handler"
 
 	"github.com/gorilla/schema"
+	"github.com/gorilla/securecookie"
+	"github.com/gorilla/sessions"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
@@ -65,7 +67,9 @@ func main() {
 	db.MustExec(createTable)
 	decoder := schema.NewDecoder()
 	decoder.IgnoreUnknownKeys(true)
-	r := handler.New(db, decoder)
+
+	store := sessions.NewCookieStore([]byte(securecookie.GenerateRandomKey(32)))
+	r := handler.New(db, decoder, store)
 
 	log.Println("Server starting...")
 	if err:= http.ListenAndServe("127.0.0.1:3000", r); err != nil {

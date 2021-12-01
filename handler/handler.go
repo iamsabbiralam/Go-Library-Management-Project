@@ -6,20 +6,26 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
+	"github.com/gorilla/sessions"
 	"github.com/jmoiron/sqlx"
 )
+
+const sessionName = "library-session"
 
 type Handler struct {
 	templates *template.Template
 	db 	*sqlx.DB
 	decoder *schema.Decoder
+	sess *sessions.CookieStore
 }
 
-func New(db *sqlx.DB, decoder *schema.Decoder) *mux.Router {
+func New(db *sqlx.DB, decoder *schema.Decoder, sess *sessions.CookieStore) *mux.Router {
 	h:= &Handler{
 		db: db,
 		decoder: decoder,
+		sess: sess,
 	}
+
 	h.parseTemplate()
 
 	r:= mux.NewRouter()
@@ -46,6 +52,7 @@ func New(db *sqlx.DB, decoder *schema.Decoder) *mux.Router {
 	r.HandleFunc("/registration", h.signUp).Methods("GET")
 	r.HandleFunc("/registration", h.signUpCheck).Methods("POST")
 	r.HandleFunc("/login", h.login).Methods("GET")
+	r.HandleFunc("/login", h.loginCheck).Methods("POST")
 
 	r.NotFoundHandler = http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		if err := h.templates.ExecuteTemplate(rw, "404.html", nil); err != nil {
