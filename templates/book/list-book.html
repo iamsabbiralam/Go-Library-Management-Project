@@ -109,7 +109,11 @@
         <nav aria-label="Page navigation example">
             <ul class="pagination justify-content-end">
                 <li class="page-item">
-                    <a class="page-link" href="{{.PreviousPageURL}}">Previous</a>
+                    {{if .PreviousPageURL}}
+                        <a class="page-link" href="{{.PreviousPageURL}}">Previous</a>
+                    {{else}}
+                        <span class="page-link" aria-disabled="true">Previous</span>
+                    {{end}}
                 </li>
                 {{ range .Paginate}}
                     <li class="page-item">
@@ -121,7 +125,11 @@
                     </li>
                 {{end}}
                 <li class="page-item">
-                    <a class="page-link" href="{{.NextPageURL}}">Next</a>
+                    {{if .NextPageURL}}
+                        <a class="page-link" href="{{.NextPageURL}}">Next</a>
+                    {{else}}
+                        <a class="page-link" aria-disabled="true">Next</a>
+                    {{end}}
                 </li>
             </ul>
         </nav>
