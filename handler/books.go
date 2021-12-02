@@ -40,6 +40,7 @@ type showBooks struct {
 	CurrentPage	int
 	NextPageURL	string
 	PreviousPageURL	string
+	Search	string
 }
 
 type Pagination struct {
@@ -330,10 +331,10 @@ func (h *Handler) searchBook(rw http.ResponseWriter, r *http.Request) {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	books := r.FormValue("search")
+	search := r.FormValue("search")
 	const getSearch = "SELECT * FROM books WHERE book_name ILIKE '%%' || $1 || '%%'"
 	book := []Book{}
-	h.db.Select(&book, getSearch, books)
+	h.db.Select(&book, getSearch, search)
 	for key, value := range book {
 		const getTodo = `SELECT name FROM categories WHERE id=$1`
 		var category Category
@@ -342,6 +343,7 @@ func (h *Handler) searchBook(rw http.ResponseWriter, r *http.Request) {
 	}
 	list := showBooks{
 		Book : book,
+		Search: search,
 	}
 	if err:= h.templates.ExecuteTemplate(rw, "list-book.html", list); err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)

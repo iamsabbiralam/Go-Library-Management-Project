@@ -38,6 +38,33 @@
                 {{end}}
             </tbody>
         </table>
+        <nav aria-label="Page navigation example">
+            <ul class="pagination justify-content-end">
+                <li class="page-item">
+                    {{if .PreviousPageURL}}
+                        <a class="page-link" href="{{.PreviousPageURL}}">Previous</a>
+                    {{else}}
+                        <span class="page-link" aria-disabled="true">Previous</span>
+                    {{end}}
+                </li>
+                {{ range .Paginate}}
+                    <li class="page-item">
+                        {{if eq $.CurrentPage .PageNumber}}
+                            <span class="page-link" style="background-color: greenyellow;">{{.PageNumber}}</span>
+                        {{else}}
+                            <a class="page-link" href="{{.URL}}">{{.PageNumber}}</a>
+                        {{end}}
+                    </li>
+                {{end}}
+                <li class="page-item">
+                    {{if .NextPageURL}}
+                        <a class="page-link" href="{{.NextPageURL}}">Next</a>
+                    {{else}}
+                        <a class="page-link" aria-disabled="true">Next</a>
+                    {{end}}
+                </li>
+            </ul>
+        </nav>
     </div>
 </body>
 </html>

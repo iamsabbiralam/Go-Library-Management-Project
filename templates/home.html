@@ -16,7 +16,11 @@
         {{if eq .Auth nil}}
             <a class="btn btn-primary" href="/login" style="color:white">Login</a>
             <a class="btn btn-primary" href="/registration" style="color:white">Sign Up</a>
+            <a class="btn btn-primary" href="/category/list">Category List</a>
+            <a class="btn btn-primary" href="/book/list">Book list</a>
         {{else}}
+            <a class="btn btn-primary" href="/category/list">Category List</a>
+            <a class="btn btn-primary" href="/book/list">Book list</a>
             <a class="btn btn-danger" href="/logout">Logout</a>
         {{end}}
             

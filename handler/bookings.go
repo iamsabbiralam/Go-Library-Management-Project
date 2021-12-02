@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"fmt"
+	"math"
 	"net/http"
 	"strconv"
 	"time"
@@ -28,6 +30,19 @@ type FormBookings struct {
 
 type MyBookings struct {
 	Booking []Bookings
+	Offset	int
+	Limit	int
+	Total	int
+	TotalPage	int
+	Paginate	[]BookingPagination
+	CurrentPage	int
+	NextPageURL	string
+	PreviousPageURL	string
+}
+
+type BookingPagination struct {
+	URL	string
+	PageNumber	int
 }
 
 func (b *Bookings) Validate() error {
@@ -110,10 +125,45 @@ func (h *Handler) loadCreateBookingForm(rw http.ResponseWriter, id int, booking 
 }
 
 func(h *Handler) myBookings(rw http.ResponseWriter, r *http.Request) {
+	page := r.URL.Query().Get("page")
+	var p int = 1
+	var err error
+	if page != "" {
+		p, err = strconv.Atoi(page)
+	}
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	booking := []Bookings{}
-	h.db.Select(&booking, "SELECT * FROM bookings")
+	offset := 0
+	limit := 2
+	if p > 0 {
+		offset = limit * p - limit
+	}
+	h.db.Select(&booking, "SELECT * FROM bookings offset $1 limit $2", offset, limit)
+	total := 0
+	h.db.Get(&total, "SELECT count(*) FROM bookings")
+	nextPageURL := ""
+	previousPageURL := ""
+	totalPage := int(math.Ceil(float64(total)/float64(limit)))
+	bookingPaginate := make([]BookingPagination, totalPage)
+	for i := 0; i < totalPage; i++ {
+		bookingPaginate[i] = BookingPagination{
+			URL: fmt.Sprintf("http://localhost:3000/mybookings?page=%d", i + 1),
+			PageNumber: i + 1,
+		}
+		if i + 1 == p {
+			if i != 0 {
+				previousPageURL = fmt.Sprintf("http://localhost:3000/mybookings?page=%d", i)
+			}
+			if i + 1 != totalPage {
+				nextPageURL = fmt.Sprintf("http://localhost:3000/mybookings?page=%d", i + 2)
+			}
+		}
+	}
 	for key, value := range booking {
-		const getBook = `SELECT book_name FROM books WHERE id=$1`
+		const getBook = `SELECT book_name FROM books WHERE id = $1`
 		var book Book
 		h.db.Get(&book, getBook, value.BookID)
 		start_time:= value.StartTime.Format("Mon Jan _2 2006 15:04 AM")
@@ -124,6 +174,14 @@ func(h *Handler) myBookings(rw http.ResponseWriter, r *http.Request) {
 	}
 	list := MyBookings{
 		Booking: booking,
+		Offset: offset,
+		Limit: limit,
+		Total: total,
+		TotalPage: totalPage,
+		Paginate: bookingPaginate,
+		CurrentPage: p,
+		NextPageURL: nextPageURL,
+		PreviousPageURL: previousPageURL,
 	}
 	if err:= h.templates.ExecuteTemplate(rw, "my-bookings.html", list); err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
