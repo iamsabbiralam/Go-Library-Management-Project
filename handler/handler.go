@@ -37,8 +37,8 @@ func New(db *sqlx.DB, decoder *schema.Decoder, sess *sessions.CookieStore) *mux.
 	l := r.NewRoute().Subrouter()
 	l.HandleFunc("/registration", h.signUp).Methods("GET")
 	l.HandleFunc("/registration", h.signUpCheck).Methods("POST")
-	l.HandleFunc("/login", h.login)
-	l.HandleFunc("/login/aaa", h.loginCheck)
+	l.HandleFunc("/login", h.login).Methods("GET")
+	l.HandleFunc("/login", h.loginCheck).Methods("POST")
 	l.Use(h.loginMiddleware)
 
 	s := r.NewRoute().Subrouter()
@@ -118,8 +118,8 @@ func (h *Handler) loginMiddleware(next http.Handler) http.Handler {
 		if authUserID != nil {
 			http.Redirect(rw, r, "/", http.StatusTemporaryRedirect)
 			return
-		} 
+		} else {
 			next.ServeHTTP(rw, r)
-		
+		}
 	})
 }

@@ -1,9 +1,12 @@
 package handler
 
 import (
+	"fmt"
 	"io/ioutil"
+	"math"
 	"net/http"
 	"path/filepath"
+	"strconv"
 
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/gorilla/mux"
@@ -27,9 +30,21 @@ type FormBooks struct {
 }
 
 type showBooks struct {
-	Book []Book
-	Booking []Bookings
-	Category []Category
+	Book	[]Book
+	Booking	[]Bookings
+	Category	[]Category
+	Offset	int
+	Limit	int
+	Total	int
+	Paginate	[]Pagination
+	CurrentPage	int
+	NextPageURL	string
+	PreviousPageURL	string
+}
+
+type Pagination struct {
+	URL	string
+	PageNumber	int
 }
 
 func (b *Book) Validate() error {
@@ -123,21 +138,62 @@ func(h *Handler) listBooks(rw http.ResponseWriter, r *http.Request) {
 	// 	const updateBook = "UPDATE books SET status = true WHERE id = $1"
 	// 	h.db.MustExec(updateBook, value.BookID)
 	// }
-
+	page := r.URL.Query().Get("page")
+	p, err := strconv.Atoi(page)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	book := []Book{}
-	h.db.Select(&book, "SELECT * FROM books")
+	offset := 0
+	limit := 3
+	nextPageURL := ""
+	previousPageURL := ""
+	if p > 0 {
+		offset = limit * p - limit
+	}
+	total := 0
+	h.db.Get(&total, `SELECT count(*) FROM books`)
+	h.db.Select(&book, "SELECT * FROM books offset $1 limit $2", offset, limit)
 	for key, value := range book {
 		const getTodo = `SELECT name FROM categories WHERE id=$1`
 		var category Category
 		h.db.Get(&category, getTodo, value.Category_id)
 		book[key].Cat_name = category.Name
 	}
+
 	category := []Category{}
 	h.db.Select(&category, "SELECT * FROM categories")
+
+	totalPage := int(math.Ceil(float64(total)/float64(limit)))
+
+	paginate := make([]Pagination, totalPage)
+	for i := 0; i < totalPage; i++ {
+		paginate[i] = Pagination{
+			URL: fmt.Sprintf("http://localhost:3000/book/list?page=%d", i + 1),
+			PageNumber: i + 1,
+		}
+		if i + 1 == p {
+			if i != 0 {
+				previousPageURL = fmt.Sprintf("http://localhost:3000/book/list?page=%d", i)
+			}
+			if i + 1 != totalPage {
+				nextPageURL = fmt.Sprintf("http://localhost:3000/book/list?page=%d", i + 2)
+			}
+		}
+	}
 	list := showBooks{
 		Book : book,
 		Category: category,
+		Offset: offset,
+		Limit: limit,
+		Total: total,
+		Paginate: paginate,
+		CurrentPage: p,
+		NextPageURL: nextPageURL,
+		PreviousPageURL: previousPageURL,
 	}
+
 	if err:= h.templates.ExecuteTemplate(rw, "list-book.html", list); err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return

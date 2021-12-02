@@ -106,6 +106,25 @@
                 {{end}}
             </tbody>
         </table>
+        <nav aria-label="Page navigation example">
+            <ul class="pagination justify-content-end">
+                <li class="page-item">
+                    <a class="page-link" href="{{.PreviousPageURL}}">Previous</a>
+                </li>
+                {{ range .Paginate}}
+                    <li class="page-item">
+                        {{if eq $.CurrentPage .PageNumber}}
+                            <span class="page-link" style="background-color: greenyellow;">{{.PageNumber}}</span>
+                        {{else}}
+                            <a class="page-link" href="{{.URL}}">{{.PageNumber}}</a>
+                        {{end}}
+                    </li>
+                {{end}}
+                <li class="page-item">
+                    <a class="page-link" href="{{.NextPageURL}}">Next</a>
+                </li>
+            </ul>
+        </nav>
     </div>
 </body>
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
