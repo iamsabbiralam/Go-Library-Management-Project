@@ -13,8 +13,13 @@
     <div class="container">
         <h2 align="center">Library Management system</h2>
         <hr>
+        {{if eq .Auth nil}}
             <a class="btn btn-primary" href="/login" style="color:white">Login</a>
             <a class="btn btn-primary" href="/registration" style="color:white">Sign Up</a>
+        {{else}}
+            <a class="btn btn-danger" href="/logout">Logout</a>
+        {{end}}
+            
     </div>
 </body>
 </html>
