@@ -139,7 +139,11 @@ func(h *Handler) listBooks(rw http.ResponseWriter, r *http.Request) {
 	// 	h.db.MustExec(updateBook, value.BookID)
 	// }
 	page := r.URL.Query().Get("page")
-	p, err := strconv.Atoi(page)
+	var p int
+	var err error
+	if page != "" {
+		p, err = strconv.Atoi(page)
+	}
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
