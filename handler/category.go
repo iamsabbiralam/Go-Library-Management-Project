@@ -1,7 +1,10 @@
 package handler
 
 import (
+	"fmt"
+	"math"
 	"net/http"
+	"strconv"
 
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/gorilla/mux"
@@ -20,6 +23,18 @@ type FormCategory struct {
 
 type ListCategory struct {
 	Categories []Category
+	Offset	int
+	Limit	int
+	Total	int
+	Paginate	[]CategoryPagination
+	CurrentPage	int
+	NextPageURL string
+	PreviousPageURL	string
+}
+
+type CategoryPagination struct {
+	URL string
+	PageNumber	int
 }
 
 func (c *Category) Validate() error {
@@ -70,10 +85,54 @@ func (h *Handler) storeCategories(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) listCategories(rw http.ResponseWriter, r *http.Request) {
+	page := r.URL.Query().Get("page")
+	var p int = 1
+	var err error
+	if page != "" {
+		p, err = strconv.Atoi(page)
+	}
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	category := []Category{}
-	h.db.Select(&category, "SELECT * FROM categories")
+	offset := 0
+	limit := 3
+	if p > 0 {
+		offset = limit * p - limit
+	}
+	total := 0
+	nextPageURL := ""
+	previousPageURL := ""
+	h.db.Get(&total, `SELECT count(*) FROM categories`)
+	h.db.Select(&category, "SELECT * FROM categories offset $1 limit $2", offset, limit)
+
+	totalPage := int(math.Ceil(float64(total)/float64(limit)))
+
+	paginate := make([]CategoryPagination, totalPage)
+	for i := 0; i < totalPage; i++ {
+		paginate[i] = CategoryPagination{
+			URL: fmt.Sprintf("http://localhost:3000/category/list?page=%d", i + 1),
+			PageNumber: i + 1,
+		}
+		if i + 1 == p {
+			if i != 0 {
+				previousPageURL = fmt.Sprintf("http://localhost:3000/category/list?page=%d", i)
+			}
+			if i + 1 != totalPage {
+				nextPageURL = fmt.Sprintf("http://localhost:3000/book/list?page=%d", i + 2)
+			}
+		}
+	}
 	list := ListCategory{
 		Categories: category,
+		Offset: offset,
+		Limit: limit,
+		Total: total,
+		Paginate: paginate,
+		CurrentPage: p,
+		NextPageURL: nextPageURL,
+		PreviousPageURL: previousPageURL,
 	}
 	if err:= h.templates.ExecuteTemplate(rw, "list-category.html", list); err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
