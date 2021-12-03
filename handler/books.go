@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"math"
 	"net/http"
-	"path/filepath"
+	"os"
 	"strconv"
 
 	validation "github.com/go-ozzo/ozzo-validation"
@@ -84,14 +84,14 @@ func (h *Handler) storeBooks(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	file, handler, err := r.FormFile("Image")
+	file, _, err := r.FormFile("Image")
     if err != nil {
         http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
     }
     defer file.Close()
 
-    tempFile, err := ioutil.TempFile("assets/image", "upload-"+filepath.Ext(handler.Filename))
+    tempFile, err := ioutil.TempFile("assets/image", "upload-*.png")
     if err != nil {
         http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
@@ -252,6 +252,39 @@ func (h *Handler) updateBook(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	file, _, err := r.FormFile("Image")
+    if err != nil {
+        http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
+    }
+    defer file.Close()
+
+    tempFile, err := ioutil.TempFile("assets/image", "upload-*.png")
+    if err != nil {
+        http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
+    }
+    defer tempFile.Close()
+
+	fileBytes, err := ioutil.ReadAll(file)
+    if err != nil {
+        http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
+    }
+	
+	tempFile.Write(fileBytes)
+	
+	imageName := tempFile.Name()
+
+	if file == nil {
+		imageName = book.Image
+	} else {
+		if err := os.Remove(book.Image); err != nil {
+			http.Error(rw, "Unable to upload image", http.StatusInternalServerError)
+			return
+		}
+	}
+
 	if err := book.Validate(); err != nil {
 		vErrors, ok := err.(validation.Errors)
 		if ok {
@@ -266,8 +299,8 @@ func (h *Handler) updateBook(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	const updateBook = `UPDATE books SET category_id = $2, book_name = $3, author_name = $4, details = $5, status = $6 WHERE id = $1`
-	res:= h.db.MustExec(updateBook, id, book.Category_id, book.Book_name, book.AuthorName, book.Details, book.Status)
+	const updateBook = `UPDATE books SET category_id = $2, book_name = $3, author_name = $4, details = $5, image = $6, status = $7 WHERE id = $1`
+	res:= h.db.MustExec(updateBook, id, book.Category_id, book.Book_name, book.AuthorName, book.Details, imageName, book.Status)
 	if ok, err:= res.RowsAffected(); err != nil || ok == 0 {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return

@@ -137,7 +137,7 @@ func(h *Handler) myBookings(rw http.ResponseWriter, r *http.Request) {
 	}
 	booking := []Bookings{}
 	offset := 0
-	limit := 2
+	limit := 4
 	if p > 0 {
 		offset = limit * p - limit
 	}
