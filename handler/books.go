@@ -253,36 +253,34 @@ func (h *Handler) updateBook(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	file, _, err := r.FormFile("Image")
-    if err != nil {
-        http.Error(rw, err.Error(), http.StatusInternalServerError)
-		return
-    }
-    defer file.Close()
-
-    tempFile, err := ioutil.TempFile("assets/image", "upload-*.png")
-    if err != nil {
-        http.Error(rw, err.Error(), http.StatusInternalServerError)
-		return
-    }
-    defer tempFile.Close()
-
-	fileBytes, err := ioutil.ReadAll(file)
-    if err != nil {
-        http.Error(rw, err.Error(), http.StatusInternalServerError)
-		return
-    }
+    
+	var imageName string
 	
-	tempFile.Write(fileBytes)
-	
-	imageName := tempFile.Name()
-
-	if file == nil {
-		imageName = book.Image
-	} else {
-		if err := os.Remove(book.Image); err != nil {
-			http.Error(rw, "Unable to upload image", http.StatusInternalServerError)
+    if err == nil {
+		defer file.Close()
+		tempFile, err := ioutil.TempFile("assets/image", "upload-*.png")
+		if err != nil {
+			http.Error(rw, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		defer tempFile.Close()
+
+		fileBytes, err := ioutil.ReadAll(file)
+		if err != nil {
+			http.Error(rw, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		
+		tempFile.Write(fileBytes)
+		
+		imageName = tempFile.Name()
+
+		if err := os.Remove(book.Image); err != nil {
+				http.Error(rw, "Unable to upload image", http.StatusInternalServerError)
+				return
+			}
+	} else {
+		imageName = book.Image
 	}
 
 	if err := book.Validate(); err != nil {
