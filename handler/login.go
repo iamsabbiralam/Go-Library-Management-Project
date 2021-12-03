@@ -3,7 +3,6 @@ package handler
 import (
 	"log"
 	"net/http"
-	"strings"
 
 	validation "github.com/go-ozzo/ozzo-validation"
 	"golang.org/x/crypto/bcrypt"
@@ -47,9 +46,9 @@ func (h *Handler) loginCheck(rw http.ResponseWriter, r *http.Request) {
 	if err := login.Validate(); err != nil {
 		vErrors, ok := err.(validation.Errors)
 		if ok {
-			var vErrs map[string]string
+			vErrs := make(map[string]string)
 			for key, value := range vErrors {
-				vErrs[strings.Title(key)] = value.Error()
+				vErrs[key] = value.Error()
 			}
 			login.Errors = vErrs
 			if err:= h.templates.ExecuteTemplate(rw, "login.html", login); err != nil {
@@ -57,6 +56,7 @@ func (h *Handler) loginCheck(rw http.ResponseWriter, r *http.Request) {
 			return
 			}
 		}
+		return
 	}
 
 	userQuery := `SELECT * FROM users WHERE email = $1`
@@ -96,5 +96,5 @@ func (h *Handler) loadLoginForm(rw http.ResponseWriter, login LoginForm) {
 	if err:= h.templates.ExecuteTemplate(rw, "login.html", login); err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
-		}
+	}
 }
