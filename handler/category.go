@@ -40,7 +40,8 @@ type CategoryPagination struct {
 func (c *Category) Validate() error {
 	return validation.ValidateStruct(c, validation.Field(
 		&c.Name, validation.Required.Error("This field is must be required"),
-		validation.Length(3,0).Error("This field is must be grater than 3")))
+		validation.Length(3,0).Error("This field is must be grater than 3"),
+		))
 }
 
 func (h *Handler) createCategories(rw http.ResponseWriter, r *http.Request) {

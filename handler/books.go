@@ -58,8 +58,10 @@ func (b *Book) Validate() error {
 			validation.Required.Error("The Author Name Field is Required"),
 		),
 		validation.Field(&b.Details,
-			validation.Required.Error("The Book Field is Required"),
-		))
+			validation.Required.Error("The Details Field is Required"),
+		),
+		validation.Field(&b.Image,
+			validation.Required.Error("The Image Field is Required")))
 }
 
 func (h *Handler) createBooks(rw http.ResponseWriter, r *http.Request) {
@@ -73,6 +75,7 @@ func (h *Handler) createBooks(rw http.ResponseWriter, r *http.Request) {
 func (h *Handler) storeBooks(rw http.ResponseWriter, r *http.Request) {
 	category := []Category{}
 	h.db.Select(&category, "SELECT * FROM categories")
+
 	if err := r.ParseMultipartForm(10 << 20); err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
@@ -109,6 +112,7 @@ func (h *Handler) storeBooks(rw http.ResponseWriter, r *http.Request) {
 
 	if err := book.Validate(); err != nil {
 		vErrors, ok := err.(validation.Errors)
+		fmt.Println(vErrors)
 		if ok {
 			vErrs := make(map[string]string)
 			for key, value := range vErrors {

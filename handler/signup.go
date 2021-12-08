@@ -1,9 +1,12 @@
 package handler
 
 import (
+	"bytes"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
+	"net/smtp"
 
 	validation "github.com/go-ozzo/ozzo-validation"
 	"golang.org/x/crypto/bcrypt"
@@ -64,7 +67,7 @@ func (h *Handler) signUpCheck(rw http.ResponseWriter, r *http.Request) {
 		if err:= h.templates.ExecuteTemplate(rw, "signup.html", formData); err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
-	}
+		}
 	}
 
 	if err := signup.Validate(); err != nil {
@@ -90,6 +93,53 @@ func (h *Handler) signUpCheck(rw http.ResponseWriter, r *http.Request) {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	// registration verification mail
+	from := "taslimahmedefty@gmail.com"
+	password := "Sta.827546"
+
+	// user mail address
+	to := []string{
+		signup.Email,
+	}
+
+	// smtp server configuration
+	smtpHost := "smtp.gmail.com"
+	smtpPort := "587"
+
+	// Authentication
+	auth := smtp.PlainAuth("", from, password, smtpHost)
+
+	t, err := template.ParseFiles("templates/mail-template.html")
+
+	if err != nil {
+		http.Error(rw, "Mail body not found", http.StatusInternalServerError)
+		return
+	}
+
+	var body bytes.Buffer
+
+	mimeHeaders := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
+	body.Write([]byte(fmt.Sprintf("Subject: %s\n%s\n\n", "Verification Mail", mimeHeaders)))
+
+	err = t.Execute(&body, struct {
+	  Name    string
+	  Link string
+	}{
+	  Name:    signup.FirstName,
+	  Link:		"Verified",
+	})
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	//  Sending email.
+	if err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, body.Bytes()); err != nil {
+	  fmt.Println(err)
+	  return
+	}
+	fmt.Println("Email Sent!")
+	
 	http.Redirect(rw, r, "/login", http.StatusTemporaryRedirect)
 }
 
