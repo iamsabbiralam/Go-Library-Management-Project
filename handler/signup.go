@@ -94,8 +94,8 @@ func (h *Handler) signUpCheck(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// registration verification mail
-	from := "taslimahmedefty@gmail.com"
-	password := "Sta.827546"
+	from := ""
+	password := ""
 
 	// user mail address
 	to := []string{
