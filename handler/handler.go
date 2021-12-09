@@ -33,6 +33,7 @@ func New(db *sqlx.DB, decoder *schema.Decoder, sess *sessions.CookieStore) *mux.
 	r:= mux.NewRouter()
 	r.HandleFunc("/", h.home)
 	r.HandleFunc("/logout", h.logout)
+	r.HandleFunc("/resetpassword", h.forgotPassword)
 
 	l := r.NewRoute().Subrouter()
 	l.HandleFunc("/registration", h.signUp).Methods("GET")
@@ -89,6 +90,7 @@ func (h *Handler) parseTemplate() {
 		"templates/book/single-details.html",
 		"templates/signup.html",
 		"templates/login.html",
+		"templates/reset-password.html",
 		))
 }
 
